@@ -1,16 +1,18 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
 
-	"os"
 	"os/exec"
 
 	"github.com/gin-gonic/gin"
 )
+
+type CompileBody struct {
+	Content string `json:"content"`
+}
 
 var db = make(map[string]string)
 
@@ -20,10 +22,31 @@ func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.LoadHTMLGlob("view/html/*")
 	r.Static("/css", "./view/css")
+	r.Static("/js", "./view/js")
 
-	// Ping test
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
+	})
+
+	r.POST("/compile", func(c *gin.Context) {
+		body := CompileBody{}
+		if err := c.BindJSON(&body); err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		compiledContent, err := compile(body.Content)
+
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			log.Println(err)
+		}
+
+		response := map[string]interface{}{
+			"compiled_content": compiledContent,
+		}
+
+		c.JSON(http.StatusOK, response)
 	})
 
 	r.GET("/", func(c *gin.Context) {
@@ -42,13 +65,13 @@ func main() {
 	r.Run(":8080")
 }
 
-func compile(content string) string {
+func compile(content string) (string, error) {
 	cmd := exec.Command("./dotpar")
 
 	stdin, err := cmd.StdinPipe()
 
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	go func() {
@@ -59,8 +82,8 @@ func compile(content string) string {
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {
-		log.Fatal(err)
+		return "", nil
 	}
 
-	return string(out)
+	return string(out), nil
 }
