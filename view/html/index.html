@@ -4,18 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="../css/styles.css" type="text/css" rel="stylesheet" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"
-    />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   </head>
   <body>
     <div class="min-h-screen relative">
       <!-- ===== CONTENT ===== -->
       <div
-        class="w-full mx-auto flex flex-row justify-between justify-items-center"
+        class="container w-full mx-auto flex flex-row justify-between justify-items-center"
       >
+        <div id="toastInfo" class="hidden toast toast-top toast-start">
+          <div class="alert alert-info">
+            <span>Copied to clipboard</span>
+          </div>
+        </div>
         <div class="flex-col basis-1/2">
           <textarea
             id="inputTextarea"
@@ -28,9 +28,13 @@
             class="file-input w-full max-w-xs"
           />
         </div>
-        <div class="flex-col basis-1/2 scroll-smooth border h-96">
-          <pre><code class="language-html" id="output"></code></pre>
+        <div class="flex-col basis-1/2 scroll-smooth">
+          <pre
+            class="w-full h-80 overflow-y-auto"
+          ><code class="language-typescript" id="output">
+          </code></pre>
           <button id="compileBtn" class="btn btn-primary">Compile</button>
+          <button id="copyBtn" class="btn btn-secondary">Copy</button>
         </div>
       </div>
       <!-- ===== FOOTER ====== -->
@@ -84,10 +88,10 @@
         </nav>
       </footer>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
-    <script>
-      hljs.highlightAll();
-    </script>
-    <script src="../js/main.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/gruvbox-dark-hard.min.css"
+    />
+    <script type="module" src="../js/main.js"></script>
   </body>
 </html>
