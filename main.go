@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"io"
-	"log"
 	"net/http"
 
 	"os/exec"
@@ -17,8 +17,6 @@ type CompileBody struct {
 var db = make(map[string]string)
 
 func setupRouter() *gin.Engine {
-	// Disable Console Color
-	// gin.DisableConsoleColor()
 	r := gin.Default()
 	r.LoadHTMLGlob("view/html/*")
 	r.Static("/css", "./view/css")
@@ -31,15 +29,25 @@ func setupRouter() *gin.Engine {
 	r.POST("/compile", func(c *gin.Context) {
 		body := CompileBody{}
 		if err := c.BindJSON(&body); err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
+			badRequestResponse := map[string]interface{}{
+				"status_code": 400,
+				"message":     err.Error(),
+			}
+
+			c.JSON(http.StatusBadRequest, badRequestResponse)
 			return
 		}
 
 		compiledContent, err := compile(body.Content)
 
 		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
-			log.Println(err)
+			badRequestResponse := map[string]interface{}{
+				"status_code": 400,
+				"message":     err.Error(),
+			}
+
+			c.JSON(http.StatusBadRequest, badRequestResponse)
+			return
 		}
 
 		response := map[string]interface{}{
@@ -82,7 +90,7 @@ func compile(content string) (string, error) {
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {
-		return "", nil
+		return "", errors.New(string(out))
 	}
 
 	return string(out), nil
