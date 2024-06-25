@@ -4,6 +4,7 @@ const output = document.getElementById("output");
 const compileBtn = document.getElementById("compileBtn");
 const copyBtn = document.getElementById("copyBtn");
 const toastInfo = document.getElementById("toastInfo");
+const spanInfo = document.getElementById("spanInfo");
 
 import hljs from "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/highlight.min.js";
 import typescript from "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/typescript.min.js";
@@ -23,6 +24,8 @@ async function handleCopyClick() {
 
   await navigator.clipboard.writeText(compiledContent);
 
+
+  spanInfo.innerText = "Copied to clipboard";
   toastInfo.classList.remove("hidden");
   setTimeout(() => {
     toastInfo.classList.add("hidden");
@@ -30,22 +33,37 @@ async function handleCopyClick() {
 }
 
 async function handleCompileClick() {
-  const response = await fetch("http://localhost:8080/compile", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ content: inputTextarea.value }),
-  });
+  try {
+    const response = await fetch("http://localhost:8080/compile", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: inputTextarea.value }),
+    });
 
-  const json = await response.json();
-  compiledContent = json.compiled_content;
+    const json = await response.json();
 
-  const highlightedCode = hljs.highlight(json.compiled_content, {
-    language: "typescript",
-  }).value;
+    if (!response.ok) {
+      spanInfo.innerText = json.message;
+      toastInfo.classList.remove("hidden");
+      setTimeout(() => {
+        toastInfo.classList.add("hidden");
+      }, 5 * 1000);
+    }
 
-  output.innerHTML = highlightedCode;
+    console.log(response);
+
+    compiledContent = json.compiled_content;
+
+    const highlightedCode = hljs.highlight(json.compiled_content, {
+      language: "typescript",
+    }).value;
+
+    output.innerHTML = highlightedCode;
+  } catch (error) {
+    console.log("new error", error);
+  }
 }
 
 async function handleFileInputChange() {
